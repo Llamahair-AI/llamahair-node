@@ -21,7 +21,7 @@ class LlamaClient {
         return client.send(request);
     }
 
-    public retreive(request: LlamaOutputRequest): Promise<LlamaResponse> {
+    public retrieve(request: LlamaOutputRequest): Promise<LlamaResponse> {
         const client = new LlamaRetrieveClient({
             jobId: request.jobId,
             apiKeyId: this.apiKeyId,
@@ -33,6 +33,6 @@ class LlamaClient {
 
     public async sendAndRetrieve(promptUrl: string, request: LlamaSendRequest): Promise<LlamaResponse> {
         const jobIdResponse = await this.send(promptUrl, request);
-        return this.retreive(jobIdResponse as LlamaOutputRequest)
+        return this.retrieve(jobIdResponse as LlamaOutputRequest)
     }
 }
