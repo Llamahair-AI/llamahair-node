@@ -10,33 +10,40 @@ import {KyHeadersInit} from "ky/distribution/types/options";
 
 export class LlamaRetrieveClient {
     readonly MAX_POLL_TIME = 45000; // 45sec timeout
-    readonly DELAY_MS = 250;
+    readonly DELAY_MS = 500;
 
     constructor(private options: LlamaRetreiveClientOptions) {}
 
-    public retreive(request: LlamaOutputRequest): Promise<LlamaResponse> {
-        const startTime = new Date().getTime();
+    public retrieve(request: LlamaOutputRequest): Promise<LlamaResponse> {
+        const startTime = Date.now();
         return new Promise<LlamaResponse>(async (resolve) => {
             const response = await this.requestLoop(request, startTime);
             resolve(response)
         })
     }
 
-    private async requestLoop(request: LlamaOutputRequest, startTime: number): Promise<LlamaResponse> {
-        const response = await this.makeRequest(request);
+    private delay(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-        switch (response.status) {
-            case "completed":
+    private async requestLoop(request: LlamaOutputRequest, startTime: number): Promise<LlamaResponse> {
+        while (true) {
+            const response = await this.makeRequest(request);
+            const currentTime = new Date().getTime();
+
+            if (response.status === "completed") {
                 return response.response;
-            case "failed":
+            }
+
+            if (response.status === "failed") {
                 throw new Error(`Request failed: ${response.status} ${response.prompt_id} ${request.jobId}`);
-            default:
-                const currentTime = new Date().getTime();
-                if (currentTime - startTime < this.MAX_POLL_TIME) {
-                    return this.requestLoop(request, startTime);
-                } else {
-                    throw new Error(`Request timedout: ${request.jobId}`);
-                }
+            }
+
+            if (currentTime - startTime >= this.MAX_POLL_TIME) {
+                throw new Error(`Request timedout: ${request.jobId}`);
+            }
+
+            await this.delay(this.DELAY_MS);
         }
     }
 
@@ -60,6 +67,6 @@ export class LlamaRetrieveClient {
     }
 
     private baseUrl(): string {
-        return process.env.LLAMAHAIR_BASE_URL || "https://api.llamahair.ai";
+        return process.env.LLAMAHAIR_API_BASE_URL || "https://api.llamahair.ai";
     }
 }

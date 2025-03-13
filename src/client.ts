@@ -7,8 +7,8 @@ export class LlamahairClient {
     private readonly apiKeySecret: string;
 
     constructor(private readonly options: LlamaClientOptions) {
-        this.apiKeyId = process.env.LLAMAHAIR_API_KEY_ID || options.apiKeyId;
-        this.apiKeySecret = process.env.LLAMAHAIR_API_SECRET || options.apiKeySecret;
+        this.apiKeyId = process.env.LLAMAHAIR_API_KEY_ID || this.options.apiKeyId;
+        this.apiKeySecret = process.env.LLAMAHAIR_API_SECRET || this.options.apiKeySecret;
     }
 
     public send(promptUrl: string, request: LlamaSendRequest): Promise<LlamaSendResponse> {
@@ -28,7 +28,7 @@ export class LlamahairClient {
             apiKeySecret: this.apiKeySecret,
         });
 
-        return client.retreive(request);
+        return client.retrieve(request);
     }
 
     public async sendAndRetrieve(promptUrl: string, request: LlamaSendRequest): Promise<LlamaResponse> {

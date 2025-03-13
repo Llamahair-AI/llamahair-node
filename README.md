@@ -20,7 +20,7 @@ const client = new LlamahairClient({
 });
 
 // Send a prompt and get response in one call
-const response = await client.sendAndRetrieve('https://your-prompt-url', {
+const response = await client.sendAndRetreive('https://your-prompt-url', {
     llama: {
         id: 'unique-id',
         body: 'Your prompt text'
@@ -77,25 +77,32 @@ const jobIdResponse = await client.send('https://your-prompt-url', {
 });
 ```
 
-#### `retrieve(request: LlamaOutputRequest): Promise<LlamaResponse>`
-Retrieves the results for a specific job ID. This method implements a polling mechanism with a 45-second timeout. It will automatically retry until the response is ready or the timeout is reached.
+#### `retreive(request: LlamaOutputRequest): Promise<LlamaResponse>`
+Retrieves the results for a specific job ID. This method implements a polling mechanism that:
+- Automatically retries every 500ms until the response is ready
+- Times out after 45 seconds of polling
+- Handles different response statuses appropriately
 
 ```typescript
-const response = await client.retrieve({ jobId: 'your-job-id' });
+const response = await client.retreive({ jobId: 'your-job-id' });
 ```
 
-The retrieve operation can result in different statuses:
+The retreive operation can result in different statuses:
 - `completed`: The request was successful and the response is available
 - `failed`: The request failed (throws an error with details)
-- Other statuses will trigger automatic retries until timeout
+- Other statuses (like `pending`): Will trigger automatic retry after 250ms delay
 
-If the operation times out (after 45 seconds), an error will be thrown.
+The operation will:
+- Return immediately if status is `completed`
+- Throw an error if status is `failed`
+- Throw an error if polling exceeds 45 seconds
+- Automatically retry with 250ms delay for any other status
 
-#### `sendAndRetrieve(promptUrl: string, request: LlamaSendRequest): Promise<LlamaResponse>`
-Convenience method that combines send and retrieve operations.
+#### `sendAndRetreive(promptUrl: string, request: LlamaSendRequest): Promise<LlamaResponse>`
+Convenience method that combines send and retreive operations.
 
 ```typescript
-const response = await client.sendAndRetrieve('https://your-prompt-url', {
+const response = await client.sendAndRetreive('https://your-prompt-url', {
     llama: {
         id: 'unique-id',
         body: 'Your prompt text'
@@ -159,7 +166,7 @@ It's recommended to wrap API calls in try-catch blocks:
 
 ```typescript
 try {
-    const response = await client.sendAndRetrieve('https://your-prompt-url', {
+    const response = await client.sendAndRetreive('https://your-prompt-url', {
         llama: {
             id: 'unique-id',
             body: 'Your prompt text'
