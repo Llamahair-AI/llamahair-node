@@ -13,9 +13,13 @@ export type LlamaRetreiveClientOptions = {
     jobId: string;
 } & LlamaClientApiKey;
 
-export type LlamaSendRequest = {
+type Llama = {
     id: string;
     body: string;
+}
+
+export type LlamaSendRequest = {
+    llama: Llama;
 }
 
 export type LlamaSendResponse = {
@@ -44,4 +48,14 @@ export type LlamaResponse = {
         summary?: string;
         extracted_values?: { key: string, value: string }[];
     }
+}
+
+export type LlamaWebhookOptions = {
+    secret: string;
+}
+
+export type LlamaWebhookValidationRequest = {
+    type: string;
+    timestamp: number;
+    value: string;
 }

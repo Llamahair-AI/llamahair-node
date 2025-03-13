@@ -16,8 +16,7 @@ export class LlamaSendClient {
             try {
                 const data = await ky.post(this.options.promptUrl, {
                     json: {
-                        id: request.id,
-                        body: request.body,
+                        ...request,
                     },
                     headers: {
                         'Content-Type': 'application/json',
